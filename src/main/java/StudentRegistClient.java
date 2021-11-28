@@ -12,7 +12,6 @@ public class StudentRegistClient {
         InetAddress addr = InetAddress.getLocalHost();
         String localname = addr.getHostName();
         String localip = addr.getHostAddress();
-        //String localip="192.168.55.111";
         System.out.println(localname + localip);
         Socket s = new Socket(localip, 3000);
         System.out.println("connect");
