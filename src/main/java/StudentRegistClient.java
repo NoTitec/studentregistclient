@@ -11,8 +11,8 @@ public class StudentRegistClient {
     public static void main(String[] args) throws IOException {
         InetAddress addr = InetAddress.getLocalHost();
         String localname = addr.getHostName();
-        //String localip = addr.getHostAddress();
-        String localip="127.0.0.1";
+        String localip = addr.getHostAddress();
+        //String localip="192.168.55.111";
         System.out.println(localname + localip);
         Socket s = new Socket(localip, 3000);
         System.out.println("connect");
@@ -50,7 +50,6 @@ public class StudentRegistClient {
                     case Rprotocol.ACCOUNT_INFO_RESULT:
                         switch (packetCode) {
                             case Rprotocol.STU_LOGIN_SUCCESS_CODE:
-                                System.out.println("로그인성공");
                                 m.menuprint();//메뉴출력
 
                                 while (true) {
@@ -217,21 +216,93 @@ public class StudentRegistClient {
                                 break;
                         }
                         break;
+                        //---------------------------------------------
                     case Rprotocol.REGIST_RESULT:
                         switch (packetCode){
                             case Rprotocol.REGIST_SUCESS_CODE:
                                 System.out.println("수강신청완료");
+                                proto.setPacket_type_and_code(Rprotocol.MENU_REQ, Rprotocol.PT_UNDEFINED, Rprotocol.PT_UNDEFINED);
+                                proto.setPacket(Rprotocol.MENU_REQ, Rprotocol.PT_UNDEFINED, Rprotocol.PT_UNDEFINED);
+                                bos.write(proto.getPacket());
+                                bos.flush();
                                 break;
                             case Rprotocol.NOT_REGIST_DAY_CODE:
                                 System.out.println("수강신청기간아님");
+                                proto.setPacket_type_and_code(Rprotocol.MENU_REQ, Rprotocol.PT_UNDEFINED, Rprotocol.PT_UNDEFINED);
+                                proto.setPacket(Rprotocol.MENU_REQ, Rprotocol.PT_UNDEFINED, Rprotocol.PT_UNDEFINED);
+                                bos.write(proto.getPacket());
+                                bos.flush();
                                 break;
                             case Rprotocol.DUP_TIME_CODE:
                                 System.out.println("수강신청요청한 과목이 내 시간표와 중복됨");
+                                proto.setPacket_type_and_code(Rprotocol.MENU_REQ, Rprotocol.PT_UNDEFINED, Rprotocol.PT_UNDEFINED);
+                                proto.setPacket(Rprotocol.MENU_REQ, Rprotocol.PT_UNDEFINED, Rprotocol.PT_UNDEFINED);
+                                bos.write(proto.getPacket());
+                                bos.flush();
                                 break;
                             case Rprotocol.MAX_STU_CODE:
                                 System.out.println("수강인원초과");
+                                proto.setPacket_type_and_code(Rprotocol.MENU_REQ, Rprotocol.PT_UNDEFINED, Rprotocol.PT_UNDEFINED);
+                                proto.setPacket(Rprotocol.MENU_REQ, Rprotocol.PT_UNDEFINED, Rprotocol.PT_UNDEFINED);
+                                bos.write(proto.getPacket());
+                                bos.flush();
                         }
                         break;
+                        //---------------------------------------------------
+                    case Rprotocol.MY_REGIST_ANS:
+                        switch (packetCode){
+                            case Rprotocol.SUBJECT_CODE_INFO_CODE:
+                                System.out.println("서버가보낸 내가 수강하는 교과목목록 출력");
+                                pos=3;
+                                rcvdatacount=proto.byteArrayToInt(Arrays.copyOfRange(buf,pos,pos+4));
+                                System.out.println("수강교과목:"+rcvdatacount+"개");
+                                pos+=4;
+
+                                for(int i=0;i<rcvdatacount;i++){
+                                    //one code 길이 추출해 저장
+                                    int codelength=proto.byteArrayToInt(Arrays.copyOfRange(buf,pos,pos+4));//4byte 길이정보 int 변환
+                                    pos+=4;//4byte 읽었으므로 pos를 4만큼 증가
+
+                                    byte[] word = Arrays.copyOfRange(buf, pos, pos+codelength);//추출한길이만큼읽어 코드추출
+                                    String onecode = new String(word);//추출 word를  string으로 변환하여 저장
+
+                                    System.out.println("과목코드:"+onecode);
+                                    pos+=codelength;// one code길이만큼 읽었으므로 pos를 one word 길이만큼 증가
+
+                                    //one name 길이 추출해 저장
+                                    int namelength=proto.byteArrayToInt(Arrays.copyOfRange(buf, pos, pos+4));//4byte 길이정보 int 변환
+                                    pos+=4;//4byte 읽었으므로 pos를 4만큼 증가
+                                    word = Arrays.copyOfRange(buf, pos, pos+namelength);//추출한길이만큼읽어 코드추출
+                                    String onename = new String(word);//추출 word를  string으로 변환하여 저장
+
+                                    System.out.println("과목이름:"+onename);
+                                    pos+=namelength;// one word길이만큼 읽었으므로 pos를 one word 길이만큼 증가
+                                }
+                                System.out.println("수강취소하고자하는 과목 코드를 입력하세요");
+                                pos=0;
+                                String selectsubjectcode=sc.next();
+                                payload=new byte[50];//선택과목 코드길이,코드저장할배열
+                                int selectsubjectcodelen=selectsubjectcode.length();
+                                System.arraycopy(proto.intto4byte(selectsubjectcodelen),0,payload,pos,proto.intto4byte(selectsubjectcodelen).length);
+                                pos+=4;
+                                System.arraycopy(selectsubjectcode.getBytes(),0,payload,pos,selectsubjectcode.getBytes().length);
+
+                                proto.setPacket(Rprotocol.PT_UNDEFINED, Rprotocol.SEL_SUBJECT_ANS, Rprotocol.SELECT_CANCLE_SUBJECT_CODE, payload);
+
+                                bos.write(proto.getPacket());
+                                bos.flush();
+                                break;
+                        }
+                        break;
+                        //-------------------------------------
+                    case Rprotocol.REGIST_CANSEL_RESULT:
+                        System.out.println("수강취소성공");
+                        proto.setPacket(Rprotocol.MENU_REQ, Rprotocol.PT_UNDEFINED, Rprotocol.PT_UNDEFINED);
+                        bos.write(proto.getPacket());
+                        bos.flush();
+                        break;
+                        //--------------------------------------
+
                 }
             }
         }
