@@ -98,7 +98,7 @@ public class StudentRegistClient {
                         break;
                     case Rprotocol.ACCOUNT_INFO_REQ:
                         switch (packetCode) {
-                            case Rprotocol.WHO_INFO_REQ:
+                            /*case Rprotocol.WHO_INFO_REQ://통합아닌 클라이언트 직책별로별도제작해서 제거
                                 System.out.println("서버가 직책확인 요청 패킷 보냄");
                                 System.out.println("1.관리자 2.교수 3.학생");
                                 String rollinput = userInput.readLine();
@@ -124,9 +124,10 @@ public class StudentRegistClient {
 
                                 bos.write(proto.getPacket());
                                 bos.flush();
-                                break;
-                            case Rprotocol.STU_ID_PWD_REQ_CODE:
-                                System.out.println("서버가 아이디,비밀번호 요청 패킷 보냄");
+                                break;*/
+                            case Rprotocol.WHO_INFO_REQ:
+                            //case Rprotocol.STU_ID_PWD_REQ_CODE:
+                                System.out.println("서버가 학생 아이디,비밀번호 요청 패킷 보냄");
                                 String id = userInput.readLine();
                                 String pwd = userInput.readLine();
                                 byte[] payload1 = id.getBytes();
