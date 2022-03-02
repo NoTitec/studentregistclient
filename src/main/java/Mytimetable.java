@@ -21,4 +21,12 @@ public class Mytimetable implements Comparable<Mytimetable>{
         }
         return 0;
     }
+
+    void setClassstarttime(String starttime){
+        classstarttime=starttime;
+    }
+
+    void setClassendtime(String endtime){
+        classendtime=endtime;
+    }
 }
